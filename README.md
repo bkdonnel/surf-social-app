@@ -1,56 +1,58 @@
-# Welcome to your Expo app 👋
+# Surf Social
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Log surf sessions, save home spots, and check their forecast. Built with Expo (React Native) and Supabase.
 
-## Get started
+**v1 scope** (current): session logging + on-demand forecast for saved home spots, for a small group of real accounts.
+**v2 scope** (not yet built): follow friends, feed of friends' sessions.
 
-1. Install dependencies
+## Stack
+
+- **App**: Expo + Expo Router, TypeScript
+- **Backend**: Supabase (Postgres, Auth, Row Level Security)
+- **Forecast data**: [Open-Meteo Marine API](https://open-meteo.com/en/docs/marine-weather-api) (free, no API key)
+
+## Setup
+
+1. Install dependencies:
 
    ```bash
    npm install
    ```
 
-2. Start the app
+2. Create a Supabase project at [supabase.com](https://supabase.com), then run the schema in `supabase/migrations/0001_init.sql` against it — either paste it into the Supabase SQL editor, or apply it with the [Supabase CLI](https://supabase.com/docs/guides/local-development) once you've linked the project.
+
+3. Copy `.env.example` to `.env` and fill in your project's URL and anon key (found in Project Settings → API):
+
+   ```bash
+   cp .env.example .env
+   ```
+
+4. Make yourself an admin so you can curate the shared spot list — after signing up once in the app, run this in the Supabase SQL editor:
+
+   ```sql
+   update public.profiles set is_admin = true where email = 'you@example.com';
+   ```
+
+   Shared spots are added directly in the Supabase table editor (`spots` table: name, latitude, longitude) for now — there's no in-app admin UI yet.
+
+5. Start the app:
 
    ```bash
    npx expo start
    ```
 
-In the output, you'll find options to open the app in a
+## Project structure
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+- `src/app/(auth)/` — sign in / sign up
+- `src/app/(tabs)/` — the three v1 tabs: `log` (sessions), `spots` (shared + personal spots), `forecast` (home spots)
+- `src/lib/supabase.ts` — Supabase client
+- `src/lib/forecast.ts` — Open-Meteo Marine API client
+- `src/hooks/` — `use-auth`, `use-spots`, `use-sessions`, `use-home-spots`
+- `supabase/migrations/0001_init.sql` — full schema + RLS policies
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+## Known gaps / next steps
 
-## Get a fresh project
-
-When you're ready, run:
-
-```bash
-npm run reset-project
-```
-
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
-
-### Other setup steps
-
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
-
-## Learn more
-
-To learn more about developing your project with Expo, look at the following resources:
-
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
-
-## Join the community
-
-Join our community of developers creating universal apps.
-
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+- **Offline sync**: sessions currently write straight to Supabase. Offline-first logging (local write + sync on reconnect) was a settled v1 requirement but isn't implemented yet — `expo-sqlite` is installed and ready for this.
+- **Spot seeding**: the shared `spots` table starts empty. Hand-curate ~20–50 spots you and your friends actually surf via the Supabase table editor; there's no bulk importer (a decent public dataset doesn't really exist — see research notes from planning).
+- **Push notifications** for forecast thresholds: deferred to post-v1 by design.
+- **Social (v2)**: follow/feed isn't started — `profiles` table exists and is ready to support it.
