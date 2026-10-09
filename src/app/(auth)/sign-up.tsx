@@ -6,9 +6,11 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
 import { useAuth } from '@/hooks/use-auth';
+import { useTheme } from '@/hooks/use-theme';
 
 export default function SignUpScreen() {
   const { signUp } = useAuth();
+  const theme = useTheme();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -53,16 +55,18 @@ export default function SignUpScreen() {
         </ThemedText>
 
         <TextInput
-          style={styles.input}
+          style={[styles.input, { color: theme.text, backgroundColor: theme.backgroundElement }]}
           placeholder="Email"
+          placeholderTextColor={theme.textSecondary}
           autoCapitalize="none"
           keyboardType="email-address"
           value={email}
           onChangeText={setEmail}
         />
         <TextInput
-          style={styles.input}
+          style={[styles.input, { color: theme.text, backgroundColor: theme.backgroundElement }]}
           placeholder="Password"
+          placeholderTextColor={theme.textSecondary}
           secureTextEntry
           value={password}
           onChangeText={setPassword}
@@ -89,7 +93,7 @@ const styles = StyleSheet.create({
   subtitle: { textAlign: 'center', marginBottom: 16 },
   input: {
     borderWidth: 1,
-    borderColor: '#ccc',
+    borderColor: 'transparent',
     borderRadius: 8,
     paddingHorizontal: 12,
     paddingVertical: 10,

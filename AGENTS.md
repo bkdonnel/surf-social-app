@@ -23,6 +23,8 @@ npx expo install --fix      # fix incompatible package versions
 
 Run lint and typecheck before declaring any task done.
 
+Current Expo Go builds require an Expo account to open a locally-running dev project — a QR scan or tapping the project in Expo Go's "Development servers" list fails with a sign-in prompt otherwise. Log in on the phone (Expo Go → account tab) and in the CLI (`npx expo login`) with the same account, then restart `npx expo start`. If the account was created via GitHub SSO, set a password for it at expo.dev first — the CLI login prompt only accepts username/password.
+
 ## Navigation & Routing
 
 - Use **Expo Router** for all navigation. Routes live in `src/app/` — every file there is a screen, `_layout.tsx` files define navigators. Keep non-route code (components, hooks, utils) outside `src/app/`.
