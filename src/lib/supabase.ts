@@ -13,11 +13,17 @@ if (!supabaseUrl || !supabaseAnonKey) {
   );
 }
 
+// Expo Router's web output renders this module on the server (Node) during
+// `expo start`/static export, where `window` doesn't exist. AsyncStorage's web
+// adapter assumes a browser and throws there, crashing the whole dev server
+// process — so skip persistence entirely in that context.
+const isServerRender = typeof window === 'undefined';
+
 export const supabase = createClient<Database>(supabaseUrl, supabaseAnonKey, {
   auth: {
-    storage: AsyncStorage,
-    autoRefreshToken: true,
-    persistSession: true,
+    storage: isServerRender ? undefined : AsyncStorage,
+    autoRefreshToken: !isServerRender,
+    persistSession: !isServerRender,
     detectSessionInUrl: false,
   },
 });

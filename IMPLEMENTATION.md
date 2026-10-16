@@ -30,8 +30,28 @@ This has to happen before the app actually runs against real data.
 - [x] Sign up once in the app, then in the SQL editor: `update public.profiles set is_admin = true where email = '<you>'`
 - [x] Disabled "Confirm email" in Supabase Auth settings (Authentication → Sign In / Up → Email) — default confirmation redirect (`localhost:3000`) doesn't work for a mobile app; deep-link redirect not yet built, revisit later
 - [x] Fixed a dark-mode bug on sign-in/sign-up screens: `TextInput` had no explicit text/background color, so it rendered black-on-black in dark mode (`src/app/(auth)/sign-in.tsx`, `sign-up.tsx`) — now wired through `useTheme()`
-- [ ] Hand-seed the shared `spots` table (~20-50 spots you/friends actually surf) via the Supabase table editor — there's no in-app admin UI or bulk importer by design (see CLAUDE.md on why)
-- [ ] Run `npx expo start` and walk through: sign up → add a custom spot → log a session → add a home spot → view its forecast (signed in successfully; rest of the flow not yet walked through)
+- [x] Hand-seed the shared `spots` table — started: North Ponto, Beacons, Pipes, Warm Water Jetty (San Diego North County) added via SQL editor. More to add over time as spots come up (~20-50 target, no rush)
+- [ ] Run `npx expo start` and walk through: sign up → add a custom spot → log a session → add a home spot → view its forecast
+  - [x] Signed in, logged a session against an existing shared spot
+  - [x] Added North Ponto (shared spot) as a home spot
+  - [ ] Add a *custom* spot (not yet exercised)
+  - [x] Confirm the Forecast tab actually renders live wave height/period data for a home spot — confirmed on-device after a full app reload (see gotcha below)
+  - **Bugs found and fixed during this pass:**
+    - `src/components/date-time-field.tsx`: the iOS inline date/time picker fired `onChange` on every field (hour, then minute) but the code closed the picker on the first `onChange`, so picking the hour dismissed it before the minute could be set. Fixed by only updating the value on `onChange` and adding an explicit "Done" button to dismiss.
+    - `src/app/(tabs)/log.tsx`: the log-session form had no scroll container, so on a tall form (e.g. with the date picker expanded) the Save/Cancel buttons could be pushed off-screen with no way to reach them. Fixed by wrapping the form in a `ScrollView` and hiding the sessions list while the form is open so the form gets the full screen.
+    - `src/lib/supabase.ts`: Expo Router's web static-output SSR render (Node, no `window`) unconditionally hit the AsyncStorage-backed auth storage, throwing `ReferenceError: window is not defined` and crashing the entire dev server process (killing Metro and the phone's connection) within seconds of every `npx expo start`. Fixed by skipping storage/session-persistence when `typeof window === 'undefined'`.
+    - `src/app/(tabs)/forecast.tsx`: the hourly forecast sliced the first 6 hours of the raw Open-Meteo response, which starts at midnight of the current day — so depending on time of day, the "next few hours" view could actually show hours that had already passed. Fixed by filtering to hours at or after the current hour before slicing.
+  - **Dev workflow gotcha hit during this pass:** after a round of `forecast.tsx` edits, the phone showed none of them — Metro's log showed only a single "Bundled" event (from the original `npx expo start`) and a stale warning from code that had since been removed, meaning Fast Refresh had stopped reaching the device. Fix was a manual reload (Expo Go dev menu → Reload). Worth checking the Metro log for repeated "Bundled" lines before assuming an edit is live on-device.
+
+### Forecast tab redesign (while finishing the walkthrough)
+
+Reworked `src/app/(tabs)/forecast.tsx` from a flat 6-hour strip into a proper multi-day forecast view:
+
+- Fetches 3 days from Open-Meteo (`fetchMarineForecast(lat, lon, 3)`) and filters to the current hour onward (no more showing already-passed hours).
+- Hours are grouped by calendar day and rendered as a single horizontally-scrollable strip of day-blocks (one `ScrollView`, not nested per-day scrolling).
+- A fixed left-hand column (outside the scrollable area) labels the three stacked rows in every hour cell: **Time / Height / Period**.
+- A single day label ("Fri", "Sat", …) sits above the grid and updates via `onScroll` + per-day-block `onLayout` x-offsets, acting like a sticky section header — it stays put while that day's hours scroll by and swaps the instant the next day's first hour reaches the left edge.
+- Wave height is converted from the API's meters to feet for display (`METERS_TO_FEET = 3.28084`); period stays in seconds.
 
 ## Phase 3 — Offline-first session logging (not started)
 

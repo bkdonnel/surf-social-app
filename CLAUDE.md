@@ -38,6 +38,8 @@ Database tables: `profiles` (1:1 with auth users, has `is_admin`), `spots` (shar
 
 ## Current status
 
-Scaffolded and committed, and now connected to a real Supabase project (see IMPLEMENTATION.md for the detailed log). `npx tsc --noEmit` and `npx expo lint` both pass. `.env` is filled in, the `0001_init.sql` migration has run, and the first account (admin) is signed up and promoted via `is_admin = true`. The shared `spots` table is still empty — hand-seeding is next.
+Scaffolded and committed, and now connected to a real Supabase project (see IMPLEMENTATION.md for the detailed log). `npx tsc --noEmit` and `npx expo lint` both pass. `.env` is filled in, the `0001_init.sql` migration has run, and the first account (admin) is signed up and promoted via `is_admin = true`. The shared `spots` table has its first 4 rows (North Ponto, Beacons, Pipes, Warm Water Jetty — all San Diego North County); hand-seeding continues toward the ~20-50 target. The golden-path walkthrough is underway on-device (iOS + Expo Go): signing in, logging a session, adding a home spot, and viewing live Forecast tab data are all confirmed working. Several bugs surfaced during this pass and are already fixed (see IMPLEMENTATION.md for specifics). Still unconfirmed: adding a custom spot.
+
+The Forecast tab was reworked beyond its original scaffold: it now shows a 3-day, horizontally-scrollable hourly forecast (grouped by day, with a sticky day-label header and a fixed Time/Height/Period label column), with wave height displayed in feet. See IMPLEMENTATION.md for the design details.
 
 Email confirmation is temporarily **disabled** in Supabase Auth settings (the default confirmation link redirects to `localhost:3000`, which assumes a web app; proper support means wiring up a deep-link redirect via the app's `surfsocialapp://` scheme, not yet built). Fine for now given the small/trusted user base — revisit before any wider use.

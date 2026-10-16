@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { FlatList, StyleSheet, TextInput, TouchableOpacity } from 'react-native';
+import { FlatList, ScrollView, StyleSheet, TextInput, TouchableOpacity } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { DateTimeField } from '@/components/date-time-field';
@@ -74,71 +74,78 @@ export default function LogScreen() {
   return (
     <ThemedView style={styles.container}>
       <SafeAreaView style={styles.safeArea} edges={['bottom']}>
-        <FlatList
-          data={sessions}
-          keyExtractor={(item) => item.id}
-          renderItem={renderItem}
-          contentContainerStyle={styles.listContent}
-          refreshing={loading}
-          ListEmptyComponent={
-            !loading ? <ThemedText style={styles.empty}>No sessions logged yet.</ThemedText> : null
-          }
-        />
-
-        {error && <ThemedText style={styles.error}>{error}</ThemedText>}
-
         {showForm ? (
-          <ThemedView type="backgroundElement" style={styles.form}>
-            <ThemedText type="smallBold">Log a session</ThemedText>
+          <ScrollView
+            style={styles.formScroll}
+            contentContainerStyle={styles.formScrollContent}
+            keyboardShouldPersistTaps="handled">
+            <ThemedView type="backgroundElement" style={styles.form}>
+              <ThemedText type="smallBold">Log a session</ThemedText>
 
-            <ThemedText type="small">Spot</ThemedText>
-            <FlatList
-              horizontal
-              data={spots}
-              keyExtractor={(item) => item.key}
-              contentContainerStyle={styles.spotPicker}
-              renderItem={({ item }) => (
-                <TouchableOpacity
-                  style={[styles.spotChip, spotKey === item.key && styles.spotChipSelected]}
-                  onPress={() => setSpotKey(item.key)}>
-                  <ThemedText
-                    type="small"
-                    style={spotKey === item.key ? styles.spotChipTextSelected : undefined}>
-                    {item.name}
-                  </ThemedText>
-                </TouchableOpacity>
-              )}
-            />
+              <ThemedText type="small">Spot</ThemedText>
+              <FlatList
+                horizontal
+                data={spots}
+                keyExtractor={(item) => item.key}
+                contentContainerStyle={styles.spotPicker}
+                renderItem={({ item }) => (
+                  <TouchableOpacity
+                    style={[styles.spotChip, spotKey === item.key && styles.spotChipSelected]}
+                    onPress={() => setSpotKey(item.key)}>
+                    <ThemedText
+                      type="small"
+                      style={spotKey === item.key ? styles.spotChipTextSelected : undefined}>
+                      {item.name}
+                    </ThemedText>
+                  </TouchableOpacity>
+                )}
+              />
 
-            <DateTimeField label="Start" value={startedAt} onChange={setStartedAt} />
-            <DateTimeField label="End" value={endedAt} onChange={setEndedAt} />
+              <DateTimeField label="Start" value={startedAt} onChange={setStartedAt} />
+              <DateTimeField label="End" value={endedAt} onChange={setEndedAt} />
 
-            <TextInput
-              style={styles.input}
-              placeholder="Wave count"
-              keyboardType="number-pad"
-              value={waveCount}
-              onChangeText={setWaveCount}
-            />
+              <TextInput
+                style={styles.input}
+                placeholder="Wave count"
+                keyboardType="number-pad"
+                value={waveCount}
+                onChangeText={setWaveCount}
+              />
 
-            <ThemedText type="small">Rating</ThemedText>
-            <StarRating value={rating} onChange={setRating} />
+              <ThemedText type="small">Rating</ThemedText>
+              <StarRating value={rating} onChange={setRating} />
 
-            {formError && <ThemedText style={styles.error}>{formError}</ThemedText>}
+              {formError && <ThemedText style={styles.error}>{formError}</ThemedText>}
 
-            <TouchableOpacity style={styles.button} onPress={handleAdd}>
-              <ThemedText style={styles.buttonText}>Save session</ThemedText>
-            </TouchableOpacity>
-            <TouchableOpacity onPress={() => setShowForm(false)}>
-              <ThemedText type="link" style={styles.cancel}>
-                Cancel
-              </ThemedText>
-            </TouchableOpacity>
-          </ThemedView>
+              <TouchableOpacity style={styles.button} onPress={handleAdd}>
+                <ThemedText style={styles.buttonText}>Save session</ThemedText>
+              </TouchableOpacity>
+              <TouchableOpacity onPress={() => setShowForm(false)}>
+                <ThemedText type="link" style={styles.cancel}>
+                  Cancel
+                </ThemedText>
+              </TouchableOpacity>
+            </ThemedView>
+          </ScrollView>
         ) : (
-          <TouchableOpacity style={styles.button} onPress={() => setShowForm(true)}>
-            <ThemedText style={styles.buttonText}>+ Log a session</ThemedText>
-          </TouchableOpacity>
+          <>
+            <FlatList
+              data={sessions}
+              keyExtractor={(item) => item.id}
+              renderItem={renderItem}
+              contentContainerStyle={styles.listContent}
+              refreshing={loading}
+              ListEmptyComponent={
+                !loading ? <ThemedText style={styles.empty}>No sessions logged yet.</ThemedText> : null
+              }
+            />
+
+            {error && <ThemedText style={styles.error}>{error}</ThemedText>}
+
+            <TouchableOpacity style={styles.button} onPress={() => setShowForm(true)}>
+              <ThemedText style={styles.buttonText}>+ Log a session</ThemedText>
+            </TouchableOpacity>
+          </>
         )}
 
         <TouchableOpacity onPress={signOut}>
@@ -158,6 +165,8 @@ const styles = StyleSheet.create({
   row: { padding: 12, borderRadius: 10, gap: 4 },
   empty: { textAlign: 'center', marginTop: 24 },
   error: { color: '#d33' },
+  formScroll: { flex: 1 },
+  formScrollContent: { paddingBottom: 12 },
   form: { padding: 12, borderRadius: 10, gap: 8 },
   input: {
     borderWidth: 1,

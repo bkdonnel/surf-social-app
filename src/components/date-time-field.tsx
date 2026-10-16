@@ -62,15 +62,19 @@ export function DateTimeField({
       </TouchableOpacity>
 
       {Platform.OS === 'ios' && showIOSPicker && (
-        <DateTimePicker
-          value={value}
-          mode="datetime"
-          display="inline"
-          onChange={(_event, selectedDate) => {
-            setShowIOSPicker(false);
-            if (selectedDate) onChange(selectedDate);
-          }}
-        />
+        <>
+          <DateTimePicker
+            value={value}
+            mode="datetime"
+            display="inline"
+            onChange={(_event, selectedDate) => {
+              if (selectedDate) onChange(selectedDate);
+            }}
+          />
+          <TouchableOpacity style={styles.doneButton} onPress={() => setShowIOSPicker(false)}>
+            <ThemedText type="small">Done</ThemedText>
+          </TouchableOpacity>
+        </>
       )}
     </>
   );
@@ -92,5 +96,10 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 10,
     fontSize: 16,
+  },
+  doneButton: {
+    alignSelf: 'flex-end',
+    paddingHorizontal: 12,
+    paddingVertical: 8,
   },
 });
